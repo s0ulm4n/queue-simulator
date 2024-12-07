@@ -1,0 +1,91 @@
+[gd_scene load_steps=11 format=3 uid="uid://bnq285a6wrgxm"]
+
+[ext_resource type="Script" path="res://scripts/world.gd" id="1_k3cl7"]
+[ext_resource type="Script" path="res://scripts/queue.gd" id="2_q30j7"]
+[ext_resource type="PackedScene" uid="uid://bdeci6c7wsmh6" path="res://scenes/customer.tscn" id="3_tb5yw"]
+[ext_resource type="PackedScene" uid="uid://bcnnq7pkedhry" path="res://scenes/minigame.tscn" id="4_ff72q"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_xsi7c"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_gipu1"]
+sky_material = SubResource("ProceduralSkyMaterial_xsi7c")
+
+[sub_resource type="Environment" id="Environment_ht0uc"]
+background_mode = 1
+sky = SubResource("Sky_gipu1")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_81dur"]
+albedo_color = Color(0.39276, 0.238695, 0, 1)
+
+[sub_resource type="Curve3D" id="Curve3D_kj1um"]
+_data = {
+"points": PackedVector3Array(0, 0, 0, 0, 0, 0, 0, 0, -20, 0, 0, 0, 0, 0, 0, 0, 0, -15, 0, 0, 0, 0, 0, 0, 0, 0, -10, 0, 0, 0, 0, 0, 0, 0, 0, -5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 15),
+"tilts": PackedFloat32Array(0, 0, 0, 0, 0, 0, 0, 0, 0)
+}
+point_count = 9
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4dwef"]
+size = Vector3(10, 2, 2)
+
+[node name="World" type="Node3D"]
+script = ExtResource("1_k3cl7")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_ht0uc")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, 0.75, -0.433013, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Floor" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0704545, 0.414298, -0.248347)
+size = Vector3(10, 0.1, 50)
+
+[node name="Counter" type="CSGBox3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 20)
+material_override = SubResource("StandardMaterial3D_81dur")
+size = Vector3(10, 2, 1)
+
+[node name="Path3D" type="Path3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+curve = SubResource("Curve3D_kj1um")
+script = ExtResource("2_q30j7")
+customer_scene = ExtResource("3_tb5yw")
+
+[node name="PathFollow3D" parent="Path3D" instance=ExtResource("3_tb5yw")]
+transform = Transform3D(-1, 0, 1.50996e-07, 0, 1, 0, -1.50996e-07, 0, -1, 0, 0, -20)
+visible = false
+
+[node name="SpawnTimer" type="Timer" parent="Path3D"]
+wait_time = 2.0
+autostart = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(-4.37114e-08, -0.707107, 0.707107, 0, 0.707107, 0.707107, -1, 3.09086e-08, -3.09086e-08, 15, 12, 0)
+
+[node name="WaitZone" type="Area3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 18.5)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="WaitZone"]
+shape = SubResource("BoxShape3D_4dwef")
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+visible = false
+offset_right = 800.0
+offset_bottom = 600.0
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+own_world_3d = true
+handle_input_locally = false
+physics_object_picking = true
+size = Vector2i(800, 600)
+render_target_update_mode = 0
+
+[node name="Minigame" parent="SubViewportContainer/SubViewport" instance=ExtResource("4_ff72q")]
+
+[connection signal="timeout" from="Path3D/SpawnTimer" to="Path3D" method="_on_spawn_timer_timeout"]
+[connection signal="area_entered" from="WaitZone" to="." method="_on_wait_zone_area_entered"]

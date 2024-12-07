@@ -1,0 +1,97 @@
+[gd_scene load_steps=17 format=3 uid="uid://bcnnq7pkedhry"]
+
+[ext_resource type="Script" path="res://scripts/minigame.gd" id="1_sjaja"]
+[ext_resource type="Script" path="res://scripts/ray_picker_camera.gd" id="2_qsanm"]
+[ext_resource type="PackedScene" uid="uid://bcqeyc4f8oveo" path="res://scenes/stamp.tscn" id="3_mcl0u"]
+[ext_resource type="Texture2D" uid="uid://ci887usgeflks" path="res://assets/diamond_stamp.svg" id="4_1x1he"]
+[ext_resource type="Script" path="res://scripts/paper.gd" id="4_cssxm"]
+[ext_resource type="Texture2D" uid="uid://csvd1cv8qf65y" path="res://assets/circle_stamp.svg" id="6_ve0b8"]
+[ext_resource type="Texture2D" uid="uid://cobteifarh0sg" path="res://assets/triangle_stamp.svg" id="7_c2xap"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_qkuij"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_h477g"]
+sky_material = SubResource("ProceduralSkyMaterial_qkuij")
+
+[sub_resource type="Environment" id="Environment_3j5kg"]
+background_mode = 2
+sky = SubResource("Sky_h477g")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_nv4jk"]
+size = Vector3(1.5, 0.5, 1.5)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_bma4h"]
+albedo_color = Color(0.816799, 0.783384, 0.6832, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_r8sr6"]
+material = SubResource("StandardMaterial3D_bma4h")
+size = Vector2(10, 10)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fpqgx"]
+size = Vector3(10, 0.1, 10)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_e0f6c"]
+top_radius = 1.0
+bottom_radius = 1.0
+height = 0.5
+
+[sub_resource type="PrismMesh" id="PrismMesh_omvff"]
+size = Vector3(2, 2, 0.5)
+
+[node name="Minigame" type="Node3D"]
+script = ExtResource("1_sjaja")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_3j5kg")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, 0.75, -0.433013, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 8, 0)
+script = ExtResource("2_qsanm")
+
+[node name="RayCast3D" type="RayCast3D" parent="Camera3D"]
+collision_mask = 2
+collide_with_areas = true
+collide_with_bodies = false
+
+[node name="DiamondStampBase" parent="." node_paths=PackedStringArray("ray_picker_camera") instance=ExtResource("3_mcl0u")]
+ray_picker_camera = NodePath("../Camera3D")
+stamp_texture = ExtResource("4_1x1he")
+base_mesh = SubResource("BoxMesh_nv4jk")
+base_rotation = Vector3(0, 0.785398, 0)
+
+[node name="Paper" type="MeshInstance3D" parent="."]
+mesh = SubResource("PlaneMesh_r8sr6")
+script = ExtResource("4_cssxm")
+
+[node name="Area3D" type="Area3D" parent="Paper"]
+collision_layer = 2
+collision_mask = 2
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Paper/Area3D"]
+shape = SubResource("BoxShape3D_fpqgx")
+
+[node name="CircleStampBase" parent="." node_paths=PackedStringArray("ray_picker_camera") instance=ExtResource("3_mcl0u")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 3, 3)
+ray_picker_camera = NodePath("../Camera3D")
+stamp_texture = ExtResource("6_ve0b8")
+base_mesh = SubResource("CylinderMesh_e0f6c")
+
+[node name="TriangleStampBase" parent="." node_paths=PackedStringArray("ray_picker_camera") instance=ExtResource("3_mcl0u")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 3)
+ray_picker_camera = NodePath("../Camera3D")
+stamp_texture = ExtResource("7_c2xap")
+base_mesh = SubResource("PrismMesh_omvff")
+base_rotation = Vector3(4.71239, 0, 0)
+base_transform_offset = Vector3(0, 0, -0.2)
+
+[connection signal="emit_stamp" from="DiamondStampBase" to="Paper" method="_on_emit_stamp"]
+[connection signal="emit_stamp" from="CircleStampBase" to="Paper" method="_on_emit_stamp"]
+[connection signal="emit_stamp" from="TriangleStampBase" to="Paper" method="_on_emit_stamp"]

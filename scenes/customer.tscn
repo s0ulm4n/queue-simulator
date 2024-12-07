@@ -1,0 +1,35 @@
+[gd_scene load_steps=5 format=3 uid="uid://bdeci6c7wsmh6"]
+
+[ext_resource type="Script" path="res://scripts/customer.gd" id="1_1y40x"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0wm8b"]
+resource_local_to_scene = true
+albedo_color = Color(0, 0.501961, 0.0666667, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_2r831"]
+material = SubResource("StandardMaterial3D_0wm8b")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_wsndm"]
+size = Vector3(1, 2, 1)
+
+[node name="PathFollow3D" type="PathFollow3D"]
+loop = false
+script = ExtResource("1_1y40x")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_2r831")
+skeleton = NodePath("../../..")
+
+[node name="Area3D" type="Area3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Area3D"]
+shape = SubResource("BoxShape3D_wsndm")
+
+[node name="Label3D" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+billboard = 1
+font_size = 128
+outline_size = 32
+
+[connection signal="area_entered" from="Area3D" to="." method="_on_area_3d_area_entered"]
+[connection signal="input_event" from="Area3D" to="." method="_on_area_3d_input_event"]
